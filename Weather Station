@@ -1,0 +1,206 @@
+esphome:
+  name: UNIQUE TO YOU
+  friendly_name: UNIQUE TO YOU
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+  encryption:
+    key: "UNIQUE TO YOU"
+
+ota:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "UNIQUE TO YOU"
+    password: "UNIQUE TO YOU"
+
+captive_portal:
+
+sensor:
+  - platform: dht
+    pin: 26
+    temperature:
+      name: "Temperature"
+    humidity:
+      name: "Humidity"
+    update_interval: 5s
+
+  - platform: pulse_counter
+    pin:
+      number: 36
+    unit_of_measurement: 'kph'
+    name: 'Wind KPH'
+    icon: 'mdi:weather-windy'
+    accuracy_decimals: 3
+    id: my_wind_speed
+    count_mode:
+      rising_edge: DISABLE
+      falling_edge: INCREMENT
+    internal_filter: 13us
+    update_interval: 5s
+    filters:
+      - lambda: return x / 60 * 2.4;
+# There is precious little info about these maths on Home Assistant, but ESPHOME has some.  It will explain it to you if you search.
+    
+  - platform: pulse_counter
+    pin:
+      number: 25
+    unit_of_measurement: 'mm/m'
+    name: 'Rain gauge'
+    icon: 'mdi:weather-rainy'
+    id: my_rain
+    count_mode:
+      rising_edge: DISABLE
+      falling_edge: INCREMENT
+    internal_filter: 13us
+    update_interval: 5s
+    accuracy_decimals: 3
+    filters:
+      - lambda: return x / 60 * 0.2794;
+# There is precious little info about these maths on Home Assistant, but ESPHOME has some.  It will explain it to you if you search.
+
+
+  - platform: adc
+    id: adc_sensor
+    pin: 39
+    update_interval: 5s
+    attenuation: 11dB
+    filters:
+      - multiply: 2.0
+      - multiply: 0.00095238
+# There is precious little info about these maths on Home Assistant, but ESPHOME has some.  It will explain it to you if you search.
+# The above calculation is listed in part under attenuation subheading of ADC. You can manipulate this as you see fit, but 11dB is required.  
+# I opted for larger numbers, between 3.3 and 18, not exactly the right number according to my meter, but 3 times larger, gives me more room to use ranges.
+    accuracy_decimals: 3
+
+  - platform: resistance
+    sensor: adc_sensor
+    id: resistance_sensor
+    configuration: DOWNSTREAM
+    resistor: 10kOhm
+    name: Resistance Sensor
+    on_value:
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 3.3
+              below: 3.7
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "N"
+            - sensor.template.publish:
+                id: wind_heading
+                state: 0.0 
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 5.2
+              below: 5.6
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "NE"         
+            - sensor.template.publish:
+                id: wind_heading
+                state: 45.0            
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 11.7
+              below: 12.3
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "E"                
+            - sensor.template.publish:
+                id: wind_heading
+                state: 90.0          
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 17.4
+              below: 18.0
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "SE"    
+            - sensor.template.publish:
+                id: wind_heading
+                state: 135.0             
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 16.3
+              below: 16.9
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "S"    
+            - sensor.template.publish:
+                id: wind_heading
+                state: 180.0            
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 14.6
+              below: 15.3
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "SW"    
+            - sensor.template.publish:
+                id: wind_heading
+                state: 225.0              
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 8.6
+              below: 9.3
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "W"    
+            - sensor.template.publish:
+                id: wind_heading
+                state: 270.0          
+      - if:
+          condition:
+            sensor.in_range:
+              id: resistance_sensor
+              above: 1.6
+              below: 2.3
+          then:
+            - text_sensor.template.publish:
+                id: wind_dir_card
+                state: "NW"    
+            - sensor.template.publish:
+                id: wind_heading
+                state: 315.0
+
+  - platform: template
+    name: "Wind Heading"
+    id: wind_heading
+    unit_of_measurement: "°"
+
+text_sensor:
+  - platform: template
+    name: "Wind Cardinal Direction"
+    id: wind_dir_card
+
