@@ -1,4 +1,20 @@
 # Home-Assistant-Weather-Station
+Version 0.3 update!
+____________________
+-Added PMSA003i air quality sensor from Adafruit(i2c version).
+  This version has issues with HA, namely it is difficult to get the SET pin to function correctly to set it to power off the laser and fan.  I was able to get it, but am still working on getting it to work reliably with a GPIO switch and interval: for automation.  As     of right now, everything is working, with the exception of the interval.  When I add the interval it works initially but fails to find the i2c device after restarts and cold boots.  I believe I need to add a way to store the i2c address to memory to prevent such a       thing...but ran out of time.
+-Added a GPIO switch for restart of the entire ESP.
+-Adjusted a few things.
+
+AND personally I migrated from bread board to a proto board with solid soldered connections.  THIS drastically improved some glitches.
+
+Pics will happen eventually.
+
+I am going to need to create a custom badge for the dashboard because the air sensor using the defaults ones is janky af.  So hopefully that will be in the next update.  I also need to add an external antenna, once enclosed the ESP attenuation is crap.
+
+----------------------
+----------------------
+
 Version 0.2
 Incorporating a sparkfun style weather station kit into Home Assistant 
 
